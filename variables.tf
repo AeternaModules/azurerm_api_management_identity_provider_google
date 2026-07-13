@@ -5,8 +5,8 @@ Required:
     - api_management_name
     - client_id
     - client_secret
-    - client_secret_key_vault_id (alternative to client_secret - read from Key Vault instead)
-    - client_secret_key_vault_secret_name (alternative to client_secret - read from Key Vault instead)
+    - client_secret_key_vault_id (optional, alternative to client_secret)
+    - client_secret_key_vault_secret_name (optional, alternative to client_secret)
     - resource_group_name
 EOT
 
@@ -18,14 +18,6 @@ EOT
     client_secret_key_vault_secret_name = optional(string)
     resource_group_name                 = string
   }))
-  validation {
-    condition = alltrue([
-      for k, v in var.api_management_identity_provider_googles : (
-        length(v.client_secret) > 0
-      )
-    ])
-    error_message = "must not be empty"
-  }
   # --- Unconfirmed validation candidates, derived from azurerm_api_management_identity_provider_google's provider source ---
   # Not auto-enabled: either a bespoke provider validator we can't safely translate,
   # or a path that crosses a list-typed block (needs its own for_each wrapping).
@@ -48,5 +40,8 @@ EOT
   #   source:    [from validate.ApiManagementServiceName] !matched
   # path: client_id
   #   source:    [from validate.GoogleClientID] !regexp.MustCompile(`^[A-Za-z0-9-]+\.apps\.googleusercontent\.com$`).MatchString(value)
+  # path: client_secret
+  #   condition: length(value) > 0
+  #   message:   must not be empty
 }
 
